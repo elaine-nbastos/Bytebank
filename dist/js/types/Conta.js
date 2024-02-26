@@ -1,3 +1,4 @@
+import { TipoTransacao } from "./TipoTransacao.js";
 export class Conta {
     nome;
     saldo = JSON.parse(localStorage.getItem("saldo")) || 0;
@@ -9,6 +10,9 @@ export class Conta {
     }) || [];
     constructor(nome) {
         this.nome = nome;
+    }
+    getTitular() {
+        return this.nome;
     }
     getGrupoTransacoes() {
         const gruposTransacoes = [];
@@ -33,6 +37,38 @@ export class Conta {
     }
     getDataAcesso() {
         return new Date();
+    }
+    registrarTransacao(novaTransacao) {
+        if (novaTransacao.tipoTransacao == TipoTransacao.DEPOSITO) {
+            this.depositar(novaTransacao.valor);
+        }
+        else if (novaTransacao.tipoTransacao == TipoTransacao.TRANSFERENCIA || novaTransacao.tipoTransacao == TipoTransacao.PAGAMENTO_BOLETO) {
+            this.debitar(novaTransacao.valor);
+            novaTransacao.valor *= -1;
+        }
+        else {
+            throw new Error("Tipo de Transação é inválido!");
+        }
+        this.transacoes.push(novaTransacao);
+        console.log(this.getGrupoTransacoes());
+        localStorage.setItem("transacoes", JSON.stringify(this.transacoes));
+    }
+    debitar(valor) {
+        if (valor <= 0) {
+            throw new Error("O valor a ser debitado deve ser maior que zero!");
+        }
+        if (valor > this.saldo) {
+            throw new Error("Saldo insuficiente!");
+        }
+        this.saldo -= valor;
+        localStorage.setItem("saldo", this.saldo.toString());
+    }
+    depositar(valor) {
+        if (valor <= 0) {
+            throw new Error("O valor a ser depositado deve ser maior que zero!");
+        }
+        this.saldo += valor;
+        localStorage.setItem("saldo", this.saldo.toString());
     }
 }
 const conta = new Conta("Joana da Silva Oliveira");

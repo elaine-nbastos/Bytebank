@@ -1,11 +1,11 @@
 import { GrupoTransacao } from "./GrupoTransacao.js";
-import { TipoTransacao } from "./TipoTransacao";
+import { TipoTransacao } from "./TipoTransacao.js";
 import { Transacao } from "./Transacao.js";
 
 export class Conta{
-    nome:string
-    saldo: number= JSON.parse(localStorage.getItem("saldo")) || 0;
-    transacoes: Transacao[] = JSON.parse(localStorage.getItem("transacoes"), (key:string, value: any) => {
+    protected nome:string
+    protected saldo: number= JSON.parse(localStorage.getItem("saldo")) || 0;
+    private transacoes: Transacao[] = JSON.parse(localStorage.getItem("transacoes"), (key:string, value: any) => {
         if(key === "data"){
             return new Date(value);
         }
@@ -16,6 +16,10 @@ export class Conta{
         this.nome = nome;
     }
     
+    public getTitular(){
+        return this.nome;
+    }
+
     getGrupoTransacoes(): GrupoTransacao[]{
         const gruposTransacoes: GrupoTransacao[] = [];
         const listaTransacoes: Transacao[] = structuredClone(this.transacoes);
@@ -58,21 +62,21 @@ export class Conta{
             throw new Error("Tipo de Transação é inválido!");
         }
 
-        transacoes.push(novaTransacao);
+        this.transacoes.push(novaTransacao);
         console.log(this.getGrupoTransacoes());
-        localStorage.setItem("transacoes", JSON.stringify(transacoes));
+        localStorage.setItem("transacoes", JSON.stringify(this.transacoes));
     }   
 
     debitar(valor: number): void{
         if (valor <= 0){
             throw new Error("O valor a ser debitado deve ser maior que zero!")
         }
-        if(valor > saldo){
+        if(valor > this.saldo){
             throw new Error("Saldo insuficiente!")
         }
     
-        saldo -= valor;
-        localStorage.setItem("saldo", saldo.toString());
+        this.saldo -= valor;
+        localStorage.setItem("saldo", this.saldo.toString());
     
     }
     
@@ -81,11 +85,9 @@ export class Conta{
             throw new Error ("O valor a ser depositado deve ser maior que zero!")
         }
         
-        saldo += valor;
-        localStorage.setItem("saldo", saldo.toString());
-    }
-    
-
+        this.saldo += valor;
+        localStorage.setItem("saldo", this.saldo.toString());
+    }   
 
 }
 
